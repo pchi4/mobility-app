@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- PERMISSÃO CRÍTICA PARA RASTREAMENTO DO MOTORISTA EM SEGUNDO PLANO -->
+    <!-- Requerida a partir do Android 10 (API 29) -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    
     <application
         android:label="mobility_app"
         android:name="${applicationName}"

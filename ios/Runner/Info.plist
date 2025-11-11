@@ -45,5 +45,25 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+		<!-- DESCRIÇÃO DE USO DE LOCALIZAÇÃO QUANDO O APP ESTÁ EM USO (Passenger/Driver Foreground) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Precisamos da sua localização para mostrar sua posição no mapa e calcular rotas.</string>
+
+	<!-- DESCRIÇÃO DE USO DE LOCALIZAÇÃO SEMPRE (Driver Background) -->
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>A localização do motorista é usada em segundo plano para rastrear a viagem e garantir a segurança, mesmo com o app fechado.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>A localização é essencial para a funcionalidade do app, seja como passageiro (em uso) ou motorista (sempre).</string>
+
+    <!-- Habilita a Localização em Segundo Plano (Background Modes) -->
+    <key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+
+	<!-- Configuração específica para google_maps_flutter no iOS, caso use Mapbox ignore. -->
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
 </dict>
 </plist>

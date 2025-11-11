@@ -1,40 +1,57 @@
+// lib/theme/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-final _storage = const FlutterSecureStorage();
-const _themeKey = 'theme_mode';
+class AppTheme {
+  static const MaterialColor primaryColor = Colors.indigo;
 
-class ThemeController extends StateNotifier<ThemeMode> {
-  ThemeController() : super(ThemeMode.system) {
-    _load();
-  }
+  static ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
+    primarySwatch: primaryColor,
+    scaffoldBackgroundColor: Colors.grey[50],
+    cardColor: Colors.white,
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      ),
+    ),
+    textTheme: const TextTheme(
+      headlineSmall: TextStyle(color: Colors.black87),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+  );
 
-  Future<void> _load() async {
-    final s = await _storage.read(key: _themeKey);
-    if (s == 'light')
-      state = ThemeMode.light;
-    else if (s == 'dark')
-      state = ThemeMode.dark;
-    else
-      state = ThemeMode.system;
-  }
-
-  Future<void> setTheme(ThemeMode mode) async {
-    state = mode;
-    final s = mode == ThemeMode.light
-        ? 'light'
-        : (mode == ThemeMode.dark ? 'dark' : 'system');
-    await _storage.write(key: _themeKey, value: s);
-  }
-
-  Future<void> toggleLightDark() async {
-    final next = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    await setTheme(next);
-  }
+  static ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primarySwatch: primaryColor,
+    scaffoldBackgroundColor: Colors.black,
+    cardColor: Colors.grey[900],
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
+      color: Colors.black,
+      elevation: 0,
+    ),
+    textTheme: const TextTheme(
+      headlineSmall: TextStyle(color: Colors.white),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      labelStyle: const TextStyle(color: Colors.white70),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+    ),
+  );
 }
-
-final themeControllerProvider =
-    StateNotifierProvider<ThemeController, ThemeMode>(
-      (ref) => ThemeController(),
-    );
