@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901569135151",
+    "project_id": "mobility-app-3a812",
+    "storage_bucket": "mobility-app-3a812.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901569135151:android:7ff95a529298916951fcda",
+        "android_client_info": {
+          "package_name": "com.example.mobility_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDySAUbQMNIJ0OsfefRQ7j4eIECXhpjZi4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

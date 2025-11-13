@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // Importações reais dos seus arquivos:
 import 'package:mobility_app/screens/main_screen.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 final onboardingProvider = Provider<bool>(
   (ref) => false,
@@ -35,6 +37,15 @@ final themeControllerProvider = StateProvider<ThemeMode>(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase inicializado com sucesso!');
+  } catch (e) {
+    print('❌ Erro ao inicializar o Firebase: $e');
+  }
 
   const storage = FlutterSecureStorage();
   final onboardingDone = await storage.read(key: 'onboarding_done');
