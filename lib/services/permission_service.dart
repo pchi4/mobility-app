@@ -2,10 +2,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 enum LocationStatus {
-  granted, // Permissão concedida e serviço de localização ativo
-  denied, // Permissão negada permanentemente ou temporariamente
-  disabled, // Serviço de localização desativado no dispositivo
-  loading, // Estado inicial (chegagem)
+  granted, 
+  denied, 
+  disabled, 
+  loading,
 }
 
 class PermissionService {
@@ -15,7 +15,7 @@ class PermissionService {
     } else if (status.isDenied || status.isPermanentlyDenied) {
       return LocationStatus.denied;
     }
-    return LocationStatus.denied; // Fallback para outros estados não tratados
+    return LocationStatus.denied; 
   }
 
   Future<LocationStatus> checkAndRequestLocationPermission() async {

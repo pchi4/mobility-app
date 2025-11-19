@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'mobility-app-3a812.firebasestorage.app',
     measurementId: 'G-L96R1T3Z74',
   );
+
 }

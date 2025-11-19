@@ -190,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         end: Alignment.bottomRight,
                       ).createShader(bounds),
                       child: const Text(
-                        '99Gemini',
+                        'Mobility App',
                         style: TextStyle(
                           fontSize: 38,
                           fontWeight: FontWeight.w900,
