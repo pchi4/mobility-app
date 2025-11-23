@@ -1,12 +1,96 @@
+// lib/screens/home/passenger_ui_widgets.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'home_screen.dart';
+import 'package:mobility_app/viewmodels/home_view_model.dart';
 
+// Typedefs (Para garantir que as assinaturas das funções do ViewModel correspondam)
 typedef RequestTripCallback = Future<void> Function();
 typedef SelectDestinationCallback = void Function(String address);
 typedef CancelRequestCallback = void Function();
 typedef SelectCategoryCallback = void Function(String category);
+typedef StartSearchCallback = void Function();
 
+// ======================================================================
+// 1. WIDGET PRINCIPAL: PassengerUiWidgets
+// ======================================================================
+class PassengerUiWidgets extends StatelessWidget {
+  final TripRequestStatus tripRequestStatus;
+  final TextEditingController searchController;
+  final Color primaryColor;
+  final double mockPrice;
+  final String? currentAddress;
+  final String? destinationAddress;
+  final String selectedCategory;
+  final Map<String, dynamic>? acceptedDriverData;
+  // Ações
+  final SelectDestinationCallback onSelectDestination;
+  final RequestTripCallback onRequestTrip;
+  final CancelRequestCallback onCancelRequest;
+  final SelectCategoryCallback onCategorySelected;
+  final VoidCallback onClearSearch;
+  final StartSearchCallback onStartSearch;
+
+  const PassengerUiWidgets({
+    super.key,
+    required this.tripRequestStatus,
+    required this.searchController,
+    required this.primaryColor,
+    required this.mockPrice,
+    this.currentAddress,
+    this.destinationAddress,
+    required this.selectedCategory,
+    this.acceptedDriverData,
+    required this.onSelectDestination,
+    required this.onRequestTrip,
+    required this.onCancelRequest,
+    required this.onCategorySelected,
+    required this.onClearSearch,
+    required this.onStartSearch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (tripRequestStatus == TripRequestStatus.IDLE ||
+        tripRequestStatus == TripRequestStatus.CHOOSING_DESTINATION) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
+            child: PassengerSearchUI(
+              searchController: searchController,
+              primaryColor: primaryColor,
+              tripRequestStatus: tripRequestStatus,
+              onSelectDestination: onSelectDestination,
+              onClearSearch: onClearSearch,
+              currentAddressFirstPart: currentAddress?.split(',').first,
+              onStartSearch: onStartSearch,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Mostra o cartão de preço/acompanhamento
+    return PassengerPriceEstimateCard(
+      tripRequestStatus: tripRequestStatus,
+      primaryColor: primaryColor,
+      mockPrice: mockPrice,
+      destinationAddress: destinationAddress,
+      currentAddress: currentAddress,
+      onRequestTrip: onRequestTrip,
+      onCancelRequest: onCancelRequest,
+      selectedCategory: selectedCategory,
+      onCategorySelected: onCategorySelected,
+      acceptedDriverData: acceptedDriverData,
+    );
+  }
+}
+
+// ======================================================================
+// 2. WIDGET DE PESQUISA (PassengerSearchUI)
+// ======================================================================
 class PassengerSearchUI extends StatelessWidget {
   final TextEditingController searchController;
   final Color primaryColor;
@@ -14,6 +98,7 @@ class PassengerSearchUI extends StatelessWidget {
   final SelectDestinationCallback onSelectDestination;
   final VoidCallback onClearSearch;
   final String? currentAddressFirstPart;
+  final StartSearchCallback onStartSearch;
 
   const PassengerSearchUI({
     super.key,
@@ -22,6 +107,7 @@ class PassengerSearchUI extends StatelessWidget {
     required this.tripRequestStatus,
     required this.onSelectDestination,
     required this.onClearSearch,
+    required this.onStartSearch,
     this.currentAddressFirstPart,
   });
 
@@ -29,9 +115,6 @@ class PassengerSearchUI extends StatelessWidget {
   Widget build(BuildContext buildContext) {
     final isSearchFocused =
         tripRequestStatus == TripRequestStatus.CHOOSING_DESTINATION;
-    final isRequestFlowActive =
-        tripRequestStatus != TripRequestStatus.IDLE &&
-        tripRequestStatus != TripRequestStatus.REQUEST_SENT;
 
     final List<Map<String, String>> mockResults = [
       {'name': 'Aeroporto (GRU)', 'address': 'Guarulhos, São Paulo'},
@@ -47,12 +130,15 @@ class PassengerSearchUI extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           child: TextField(
             controller: searchController,
-            readOnly: tripRequestStatus == TripRequestStatus.REQUEST_SENT,
+            readOnly:
+                tripRequestStatus != TripRequestStatus.IDLE &&
+                tripRequestStatus != TripRequestStatus.CHOOSING_DESTINATION,
             decoration: InputDecoration(
-              hintText:
-                  'Para onde vamos, ${currentAddressFirstPart ?? 'Passageiro'}?',
+              hintText: isSearchFocused
+                  ? 'Digite o endereço de destino...'
+                  : 'Para onde vamos, ${currentAddressFirstPart ?? 'Localização Atual'}?',
               prefixIcon: Icon(Icons.search, color: primaryColor),
-              suffixIcon: isRequestFlowActive
+              suffixIcon: isSearchFocused
                   ? IconButton(
                       icon: const Icon(Icons.clear, color: Colors.grey),
                       onPressed: onClearSearch,
@@ -66,6 +152,11 @@ class PassengerSearchUI extends StatelessWidget {
               fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(vertical: 15),
             ),
+            onTap: () {
+              if (tripRequestStatus == TripRequestStatus.IDLE) {
+                onStartSearch();
+              }
+            },
           ),
         ),
         if (isSearchFocused)
@@ -99,6 +190,9 @@ class PassengerSearchUI extends StatelessWidget {
   }
 }
 
+// ======================================================================
+// 3. CARD DE PREÇO E CONFIRMAÇÃO (PassengerPriceEstimateCard)
+// ======================================================================
 class PassengerPriceEstimateCard extends StatelessWidget {
   final TripRequestStatus tripRequestStatus;
   final Color primaryColor;
@@ -109,7 +203,7 @@ class PassengerPriceEstimateCard extends StatelessWidget {
   final VoidCallback onCancelRequest;
   final String selectedCategory;
   final SelectCategoryCallback onCategorySelected;
-  final Map<String, dynamic>? acceptedDriverData; // <--- ADICIONE ESTA LINHA
+  final Map<String, dynamic>? acceptedDriverData;
 
   const PassengerPriceEstimateCard({
     super.key,
@@ -152,11 +246,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
     return {'price': price, 'eta': eta, 'icon': icon};
   }
 
-  // passenger_ui_widgets.dart
-
-  // ... (Importações e outros métodos inalterados)
-
-  // NOVO WIDGET PARA RENDERIZAR UM ÚNICO CARTÃO DE CATEGORIA
   Widget _buildCategoryCard(String category) {
     final info = _getCategoryInfo(category);
     final isSelected = category == selectedCategory;
@@ -174,7 +263,7 @@ class PassengerPriceEstimateCard extends StatelessWidget {
         curve: Curves.easeOut,
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        width: 260, // 🔥 Tamanho fixo para funcionar no scroll horizontal
+        width: 260,
         decoration: BoxDecoration(
           color: isSelected ? primaryColor.withOpacity(0.10) : Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -193,7 +282,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Ícone
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -209,7 +297,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
 
             const SizedBox(width: 14),
 
-            // Nome e ETA (sem Expanded — agora usando Flexible loose)
             Flexible(
               fit: FlexFit.loose,
               child: Column(
@@ -239,7 +326,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            // Preço (fixo para não causar flex)
             Text(
               priceText,
               style: TextStyle(
@@ -253,8 +339,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
       ),
     );
   }
-
-  // ... (Resto da classe PassengerPriceEstimateCard inalterado)
 
   Widget _buildCategorySelector() {
     return SingleChildScrollView(
@@ -274,54 +358,41 @@ class PassengerPriceEstimateCard extends StatelessWidget {
   Widget _buildTripTrackingUI(BuildContext context) {
     final theme = Theme.of(context);
     final currentCategory = selectedCategory;
+    final driver = acceptedDriverData;
+
+    String statusText;
+    if (tripRequestStatus == TripRequestStatus.REQUEST_SENT) {
+      statusText = 'Procurando por um motorista ${currentCategory} próximo...';
+    } else if (tripRequestStatus == TripRequestStatus.TRIP_ACCEPTED &&
+        driver != null) {
+      statusText =
+          '${driver['name']} (${driver['carModel']}, ${driver['plate']}) está a caminho!';
+    } else {
+      statusText = 'Aguardando atualização de status...';
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Center(child: CircularProgressIndicator()),
+        Center(
+          child: tripRequestStatus == TripRequestStatus.REQUEST_SENT
+              ? const CircularProgressIndicator()
+              : const Icon(Icons.check_circle, color: Colors.green, size: 40),
+        ),
         const SizedBox(height: 15),
         Text(
-          'Procurando por um motorista ${currentCategory} próximo...',
-          style: theme.textTheme.titleMedium,
+          statusText,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 10),
         Text(
-          'Local de recolha: ${currentAddress?.split(',').first}',
+          'Local de recolha: ${currentAddress?.split(',').first ?? 'Localização Atual'}',
           style: theme.textTheme.bodyMedium,
         ),
         const SizedBox(height: 20),
-        // Mensagens de Segurança e Contato
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Simulando Ligação...')),
-                );
-              },
-              icon: const Icon(Icons.call, size: 18),
-              label: const Text('Contatar Suporte'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
-                foregroundColor: Colors.white,
-              ),
-            ),
-            Row(
-              children: [
-                const Icon(Icons.security, color: Colors.green),
-                const SizedBox(width: 5),
-                Text(
-                  'Viagem segura',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
+
         SizedBox(
           width: double.infinity,
           height: 55,
@@ -348,7 +419,9 @@ class PassengerPriceEstimateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isRequestSent = tripRequestStatus == TripRequestStatus.REQUEST_SENT;
+    final isTracking =
+        tripRequestStatus == TripRequestStatus.REQUEST_SENT ||
+        tripRequestStatus == TripRequestStatus.TRIP_ACCEPTED;
     final info = _getCategoryInfo(selectedCategory);
     final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
@@ -372,14 +445,11 @@ class PassengerPriceEstimateCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Exibe a tela de Acompanhamento ou o Seletor/Confirmação
-          if (isRequestSent) _buildTripTrackingUI(context),
+          if (isTracking) _buildTripTrackingUI(context),
 
-          if (!isRequestSent) ...[
-            // 1. Seleção de Categoria (AGORA VISUAL!)
+          if (!isTracking) ...[
             _buildCategorySelector(),
 
-            // 2. Título e Preço (Mantido, mas usando o preço da categoria selecionada)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -390,7 +460,7 @@ class PassengerPriceEstimateCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  formatter.format(info['price']), // Preço da categoria
+                  formatter.format(info['price']),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: primaryColor,
@@ -400,7 +470,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
             ),
             const Divider(height: 20, thickness: 1),
 
-            // 3. Detalhes de Origem/Destino (Mantido)
             _buildDetailRow(
               Icons.radio_button_checked,
               'Origem:',
@@ -416,7 +485,6 @@ class PassengerPriceEstimateCard extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // 4. Botão Solicitar Agora
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -483,6 +551,10 @@ class PassengerPriceEstimateCard extends StatelessWidget {
   }
 }
 
+// ======================================================================
+// 4. BOTÕES DE ACESSO RÁPIDO (QuickAccessButtons)
+// ======================================================================
+
 class QuickAccessButtons extends StatelessWidget {
   final TripRequestStatus tripRequestStatus;
   final Color primaryColor;
@@ -501,7 +573,7 @@ class QuickAccessButtons extends StatelessWidget {
 
     return Positioned(
       right: 15,
-      bottom: 20,
+      bottom: 80,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

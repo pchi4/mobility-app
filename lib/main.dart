@@ -6,9 +6,7 @@ import 'package:mobility_app/screens/main_screen.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-final onboardingProvider = Provider<bool>(
-  (ref) => false,
-); 
+final onboardingProvider = Provider<bool>((ref) => false);
 
 class AuthState {
   final bool isAuthenticated;
@@ -17,8 +15,7 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   AuthNotifier() : super(const AuthState());
-  void checkAuthStatus() {
-  }
+  void checkAuthStatus() {}
 }
 
 final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((

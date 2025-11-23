@@ -24,7 +24,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'Segurança Primeiro',
       'description':
           'Viagens seguras com motoristas verificados e suporte 24 horas.',
-      'backgroundColor': const Color(0xFFEFE8D8), // Bege claro
+      'backgroundColor': const Color.fromARGB(255, 34, 74, 182), // Bege claro
     },
     {
       'icon': Icons.monetization_on, // Ícone original

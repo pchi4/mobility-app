@@ -1,9 +1,101 @@
+// lib/screens/home/driver_ui_widgets.dart
+
 import 'package:flutter/material.dart';
+// Importação do ViewModel para acessar Typedefs, Enums, etc.
+// Embora ToggleStatusCallback e AcceptRequestCallback estejam definidos aqui,
+// o arquivo pode precisar de outras dependências do ViewModel se você mover os typedefs.
+// Mantenha assim por enquanto, presumindo que este arquivo é a fonte dos typedefs ou que precisa do ViewModel:
+// import 'package:mobility_app/viewmodels/home_view_model.dart';
 
 // Typedefs (Definidos no map_view, mas repetidos para clareza no widget)
+// 💡 NOTA: Mover esses typedefs para 'home_view_model.dart' ou 'utils.dart' é melhor para evitar repetição.
 typedef ToggleStatusCallback = void Function(bool isOnline);
 typedef AcceptRequestCallback = void Function(String requestId);
 
+// ======================================================================
+// WIDGET PRINCIPAL: DriverUiWidgets (Equivalente ao DriverPanel)
+// ======================================================================
+class DriverUiWidgets extends StatelessWidget {
+  final bool isDriverOnline;
+  final Map<String, dynamic>? pendingRequest;
+  final ToggleStatusCallback onToggleDriverStatus;
+  final AcceptRequestCallback onAcceptRequest;
+  final Color primaryColor;
+
+  const DriverUiWidgets({
+    super.key,
+    required this.isDriverOnline,
+    this.pendingRequest,
+    required this.onToggleDriverStatus,
+    required this.onAcceptRequest,
+    required this.primaryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 1. Painel de Status de Online/Offline
+    final statusToggle = DriverStatusToggle(
+      isDriverOnline: isDriverOnline,
+      onToggleDriverStatus: onToggleDriverStatus,
+      primaryColor: primaryColor,
+    );
+
+    // 2. Conteúdo Principal (Requisição Pendente ou Apenas Status)
+    final Widget content;
+    if (pendingRequest != null) {
+      content = DriverPendingRequestCard(
+        pendingRequest: pendingRequest!,
+        onAcceptRequest: onAcceptRequest,
+        primaryColor: primaryColor,
+      );
+    } else {
+      content = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 20),
+        child: Center(
+          child: Text(
+            'Aguardando novas solicitações de viagem.',
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
+    // Estrutura Base
+    return Container(
+      padding: const EdgeInsets.only(top: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            spreadRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Toggle no topo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [statusToggle],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Conteúdo de requisição ou espera
+          Flexible(child: content),
+        ],
+      ),
+    );
+  }
+}
 // ======================================================================
 // 1. WIDGET DE TOGGLE DE STATUS (DriverStatusToggle)
 // ======================================================================
