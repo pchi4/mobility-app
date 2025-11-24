@@ -183,6 +183,9 @@ class HomeViewModel extends ChangeNotifier {
       return;
     }
 
+    // 1. Limpa marcadores existentes
+    _markers.clear();
+
     try {
       final docRef = await _firestore.collection('trip_requests').add({
         'passengerId': _mockUserId,
@@ -199,6 +202,24 @@ class HomeViewModel extends ChangeNotifier {
 
       _currentTripRequestId = docRef.id;
       _tripRequestStatus = TripRequestStatus.REQUEST_SENT;
+
+      // ⚠️ CORREÇÃO: Adicionar o marcador de origem (e destino, se aplicável)
+      // O mapa precisa de marcadores para renderizar o estado de REQUEST_SENT.
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('origin'),
+          position: _currentPosition!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+          infoWindow: InfoWindow(title: currentAddress ?? 'Local de Partida'),
+        ),
+      );
+
+      // Se o destino for conhecido (que é o caso), adicione o marcador de destino.
+      // LatLng destCoord = ... (aqui você precisaria de um Geocoding para obter a coordenada do destinationAddress)
+      // Por enquanto, apenas atualizamos o estado.
+
       notifyListeners();
 
       // Começa a monitorar este documento específico
@@ -256,23 +277,25 @@ class HomeViewModel extends ChangeNotifier {
     _tripStatusSubscription?.cancel();
     _currentTripRequestId = null;
     _acceptedDriverData = null;
+    _markers.clear(); // Limpa marcadores
 
     _tripRequestStatus = TripRequestStatus.IDLE;
     _destinationAddress = null;
     _searchController.clear();
-    _markers.clear();
     notifyListeners();
   }
 
   void onCancelRequest() {
     // Tenta deletar a requisição no Firestore (opcional, dependendo da regra de segurança)
     if (_currentTripRequestId != null) {
+      // ⚠️ IMPORTANTE: Também define o status como 'CANCELLED' ou 'EXPIRED'
+      // para notificar o motorista (caso ele esteja monitorando)
       _firestore
           .collection('trip_requests')
           .doc(_currentTripRequestId)
-          .delete()
+          .update({'status': 'CANCELLED'})
           .catchError((e) {
-            print('Erro ao deletar requisição no Firestore: $e');
+            print('Erro ao atualizar status de cancelamento no Firestore: $e');
           });
     }
     clearSearch();
